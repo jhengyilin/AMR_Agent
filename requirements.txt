@@ -1,0 +1,6 @@
+openai
+numpy
+pydub
+sounddevice
+soundfile
+gtts

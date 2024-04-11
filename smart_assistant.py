@@ -1,5 +1,5 @@
-from audio import *
-from command import *
+from utils.audio import *
+from utils.command import *
 import json
 import openai
 from amr_def import *
