@@ -9,7 +9,7 @@ class AMR_Agent:
         self.__amr_control = AMRControl()
 
         self.__message_handler = MessageHandler(self.__amr_control)
-        self.__message_handler_thread = threading.Thread(
+        self.__message_handler_thread = threading.Thread(   
             target=self.__message_handler.run)
 
         self.__smart_assist = SmartAssistant(self.__amr_control)

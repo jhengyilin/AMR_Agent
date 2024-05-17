@@ -2,7 +2,7 @@ import threading
 import queue
 
 # smart assist #################################################################
-PRINT_EVEYTHING = False
+PRINT_EVERYTHING = False
 REPLAY_AUDIO = False
 
 INITIAL_LOCATION = "base_station"

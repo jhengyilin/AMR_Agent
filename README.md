@@ -12,7 +12,7 @@ The AMR Agent project consists of several Python scripts that work together to c
 
 - `message_handler.py`: This script handles the communication with the ROS (Robot Operating System) and controls the AMR.
 
-- `audio.py`: This is a helper script that provides audio-related functionality.
+- `utils/audio.py`: This is a helper script that provides audio-related functionality.
 
 - `utils/command.py`: This is another helper script to get command.
 

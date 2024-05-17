@@ -31,7 +31,7 @@ class SmartAssistant:
         self.__amr_control.smart_assist_prompt.put(
             "Processing\naudio input")
         self.__user_new_input = voice_to_text(audio_data)
-        if PRINT_EVEYTHING:
+        if PRINT_EVERYTHING:
             print(f"Recognized text: {self.__user_new_input}")
 
         prompt = """
@@ -95,13 +95,13 @@ class SmartAssistant:
             "Generating\nsmart output")
         response = generate_command(prompt)
         self.__previous_response = response
-        if PRINT_EVEYTHING:
+        if PRINT_EVERYTHING:
             print(f"Generated command: {response}")
 
         start_index = response.find("{")
         end_index = response.rfind("}")
         json_response = response[start_index:end_index + 1]
-        if PRINT_EVEYTHING:
+        if PRINT_EVERYTHING:
             print(f'Generated json:\n{json_response}')
 
         response_data = json.loads(json_response)
@@ -127,7 +127,7 @@ class SmartAssistant:
         self.__amr_control.smart_assist_location_name_setting.put(location_names)
         self.__amr_control.smart_assist_pose_setting.put(poses)
 
-        if PRINT_EVEYTHING:
+        if PRINT_EVERYTHING:
             print(f'Generated dict:\n{response_data}')
 
         self.__amr_control.smart_assist_prompt.put("Audio response")
