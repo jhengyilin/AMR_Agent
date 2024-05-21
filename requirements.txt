@@ -4,3 +4,4 @@ pydub
 sounddevice
 soundfile
 gtts
+python-dotenv

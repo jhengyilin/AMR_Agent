@@ -4,9 +4,13 @@ from pydub import AudioSegment
 import tempfile
 import sounddevice as sd
 import soundfile as sf
-import openai
+from openai import OpenAI
 from gtts import gTTS
 from io import BytesIO
+import os 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def read_audio_from_file_obj(file_obj):
     audio_bytes = BytesIO(file_obj.read())
@@ -31,12 +35,17 @@ def voice_to_text(audio_data):
         channels=1,
     )
 
+    client = OpenAI()
+
     with tempfile.NamedTemporaryFile(suffix=".mp3") as temp_audio_file:
         audio_segment.export(temp_audio_file.name, format="mp3")
         
         with open(temp_audio_file.name, 'rb') as file_obj:
             # Transcribe audio using OpenAI's Whisper API
-            response = openai.Audio.transcribe("whisper-1", file_obj)
+            response = client.audio.transcriptions.create(
+                model="whisper-1", 
+                file=file_obj,
+            )
 
     return response.text
 

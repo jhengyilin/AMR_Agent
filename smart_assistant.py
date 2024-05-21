@@ -1,13 +1,8 @@
 from utils.audio import *
 from utils.command import *
 import json
-import openai
 from amr_def import *
 import time
-
-# Replace with your Whisper ASR and ChatGPT API keys
-openai.api_key = ""
-
 
 class SmartAssistant:
 
@@ -23,6 +18,7 @@ class SmartAssistant:
     def __ai_interact(self):
         self.__amr_control.smart_assist_prompt.put(
             "Recording\naudio input")
+        # print("Recording audio input")
         audio_data = record_audio(duration=5)
 
         if REPLAY_AUDIO:
@@ -40,11 +36,20 @@ class SmartAssistant:
 
             You have been asked to control an Autonomous Mobile Robot (AMR) in a factory setting.
 
+            The factory has a 400 x 400 square meter floor space. (pose: [0, 0, 0, 0, 0, 0, 1] ~ [400, 400, 0, 0, 0, 0, 1])
+
             Respond to this request sent to the factory AMR controller only in JSON format which will be interpreted by the application code to execute the actions:
 
             - "command": change the state of the AMR navigation
             
             You would have to give the final "command" based on the AMR's initial location ({0}) and the previous response.
+
+            The AMR can navigate to the following locations:
+            "Table_Leg_Warehouse" has pose [200, 100, 0, 0, 0, 0, 1]
+            "Table_Top_Warehouse" has pose [300, 200, 0, 0, 0, 0, 1]
+            "Assembly_Line" has pose [100, 300, 0, 0, 0, 0, 1]
+            "car_1" has pose [400, 300, 0, 0, 0, 0, 1]
+            "Base_Station" has pose [0, 0, 0, 0, 0, 0, 1]
 
             Details about the response JSON:
             
@@ -68,7 +73,8 @@ class SmartAssistant:
 
             The "target_locations" property should be the generated desired navigation path:
                 The content of the property should contain the pose [x, y, z, orientation] coordinates of the locations to traverse.
-                Ensure gentle and smooth navigation between locations to handle delicate semiconductor chips.
+                The AMR ultimate goal is to help user to move parts from one location to another and to the assembly line.
+                Ensure gentle and smooth navigation between locations to handle delicate parts.
                 
             The "comment" property should provide commentary on the path planning and navigation, adding any relevant information about modifications if needed.
 
@@ -93,7 +99,7 @@ class SmartAssistant:
 
         self.__amr_control.smart_assist_prompt.put(
             "Generating\nsmart output")
-        response = generate_command(prompt)
+        response = generate_command(prompt, self.__user_new_input)
         self.__previous_response = response
         if PRINT_EVERYTHING:
             print(f"Generated command: {response}")
@@ -105,14 +111,14 @@ class SmartAssistant:
             print(f'Generated json:\n{json_response}')
 
         response_data = json.loads(json_response)
-        location_names = []
-        poses = []
+        self.__location_names = []
+        self.__poses = []
 
         # Extract data from the 'target_locations' property in the JSON response
         for location in response_data["target_locations"]:
-            location_names.append(location["location"])
+            self.__location_names.append(location["location"])
             pose = location["pose"]
-            poses.append({
+            self.__poses.append({
                 "x": pose[0],
                 "y": pose[1],
                 "z": pose[2],
@@ -124,8 +130,8 @@ class SmartAssistant:
                 }
             })
 
-        self.__amr_control.smart_assist_location_name_setting.put(location_names)
-        self.__amr_control.smart_assist_pose_setting.put(poses)
+        # self.__amr_control.smart_assist_location_name_setting.put(location_names)
+        # self.__amr_control.smart_assist_pose_setting.put(poses)
 
         if PRINT_EVERYTHING:
             print(f'Generated dict:\n{response_data}')
@@ -136,14 +142,40 @@ class SmartAssistant:
 
     def run(self):
         while True:
-            while not self.__amr_control.start_listen_event.is_set(
-            ) and not self.__amr_control.reset_event.is_set():
-                time.sleep(0.1)
+            # while not self.__amr_control.start_listen_event.is_set() and not self.__amr_control.reset_event.is_set():
+            #     time.sleep(0.1)
+
+             
 
             if self.__amr_control.reset_event.is_set():
                 return
 
+            print("start")
+
             self.__ai_interact()
+
+            print("finish")
+
+            print()
+
+        
+            # Check if the user wants to quit the loop
+            print("Current target locations:")
+            print(self.__location_names)
+            print("Current target poses:")
+            print(self.__poses)
+            user_input = input("Press 'q' and Enter to quit the loop, Press 'c' to confirm the locations, or just Enter to continue adding request: ")
+            if user_input.lower() == 'q':
+                print("Quitting the loop...")
+                break
+            elif user_input.lower() == 'c':
+                self.__amr_control.smart_assist_location_name_setting.put(self.__location_names)
+                self.__amr_control.smart_assist_pose_setting.put(self.__poses)
+                break
+            elif user_input == '':
+                self.__location_names = []
+                self.__poses = []
+                continue
 
             self.__amr_control.start_listen_event.clear()
 
@@ -156,6 +188,9 @@ class SmartAssistant:
     __previous_response = None
     __user_input = None
     __user_new_input = None
+
+    __location_names = None
+    __poses = None
 
 
 if __name__ == "__main__":
