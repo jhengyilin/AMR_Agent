@@ -9,8 +9,16 @@ from gtts import gTTS
 from io import BytesIO
 import os 
 from dotenv import load_dotenv
+import time
+from pygame import mixer
+import pygame
+import elevenlabs
+
+mixer.init()
 
 load_dotenv()
+
+elevenlabs.set_api_key(os.getenv("ELEVENLABS_API_KEY"))
 
 def read_audio_from_file_obj(file_obj):
     audio_bytes = BytesIO(file_obj.read())
@@ -49,21 +57,43 @@ def voice_to_text(audio_data):
 
     return response.text
 
-def text_to_speech(text):
+# def text_to_speech(text):
     
-    tts = gTTS(text=text, lang='en', tld = 'us', slow=False)
+#     tts = gTTS(text=text, lang='en', tld = 'us', slow=False)
 
-    with tempfile.NamedTemporaryFile(suffix=".mp3") as temp_audio_file:
-        tts.write_to_fp(temp_audio_file)
-        temp_audio_file.seek(0)
+#     with tempfile.NamedTemporaryFile(suffix=".mp3") as temp_audio_file:
+#         tts.write_to_fp(temp_audio_file)
+#         temp_audio_file.seek(0)
 
-        # Load audio data from file and convert it to a numpy array
-        audio_data = read_audio_from_file_obj(temp_audio_file)
+#         # Load audio data from file and convert it to a numpy array
+#         audio_data = read_audio_from_file_obj(temp_audio_file)
 
-    play_audio(audio_data)
+#     play_audio(audio_data)
 
 
 def play_audio(audio_data, sample_rate=16000):
     print("Playing audio...")
     sd.play(audio_data, sample_rate)
     sd.wait()
+
+def text_to_speech(text):
+    """
+    Converts text to speech using an external API and plays it.
+    """
+    current_time = time.time()
+    print("Generating speech...")
+    
+    audio = elevenlabs.generate(
+        text=text,  # Directly use the text passed to the function
+        voice="UIpYR5ztFVFz4W8qqDfi",  # Example: Joanne's voice
+        model="eleven_multilingual_v2"
+    )
+    elevenlabs.save(audio, "./audio.wav")
+    
+    audio_time = time.time() - current_time
+    print(f"Finished generating audio in {audio_time:.2f} seconds.")
+    print("Playing audio response...")
+    sound = mixer.Sound(str("./audio.wav"))
+    sound.play()
+    pygame.time.wait(int(sound.get_length() * 1000))
+    print("Audio playback completed.")
