@@ -29,7 +29,7 @@ To use the AMR Agent, follow these steps:
     sudo apt install ffmpeg
     pip install -r requirements.txt
     ```
-4. Run the `agent.py` script to start the AMR Agent.
+4. Run the `application_loop.sh` or `agent.py` script to start the AMR Agent.
 
 ## Future Work
 
